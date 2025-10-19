@@ -31,7 +31,7 @@ class Session:
         timestamp = self.session_start
         all_data = []
         while timestamp < self.session_end:
-            chunk_end = min(timestamp.replace(microsecond=920983) + timedelta(minutes=60), self.session_end)
+            chunk_end = min(timestamp.replace(microsecond=920983) + timedelta(minutes=120), self.session_end)
             chunk_data = self.fetch_interval(path, timestamp, chunk_end, params)
             all_data.extend(chunk_data)
             timestamp = chunk_end
@@ -65,26 +65,26 @@ for entry in car_data:
         prev_pos = (prev_location["x"], prev_location["y"], prev_location["z"])
         t1 = (datetime.fromisoformat(entry["date"]) - datetime.fromisoformat(prev_location["date"])).total_seconds()
         t2 = (datetime.fromisoformat(location["date"]) - datetime.fromisoformat(prev_location["date"])).total_seconds()
-        location = (
+        pos = (
             prev_pos[0] + (pos[0] - prev_pos[0]) * t1 / t2,
             prev_pos[1] + (pos[1] - prev_pos[1]) * t1 / t2,
             prev_pos[2] + (pos[2] - prev_pos[2]) * t1 / t2,
         )
 
-    entry["x"], entry["y"], entry["Z"] = location
+    entry["x"], entry["y"], entry["z"] = pos
 
 with open("data/car_data.json", "w") as file:
     json.dump(car_data, file)
 
-with open("data/location.json", "w") as file:
-    json.dump(points, file)
+# with open("data/location.json", "w") as file:
+#     json.dump(points, file)
 
 # Only use a fraction of the data for plotting to keep it light
 # points = points[::10]  # Take every 10th point
 
 # Extract x and y coordinates
-x_coords = [point['x'] for point in points]
-y_coords = [point['y'] for point in points]
+x_coords = [point['x'] for point in car_data]
+y_coords = [point['y'] for point in car_data]
 
 # Create 2D scatter plot
 plt.figure(figsize=(10, 8))
