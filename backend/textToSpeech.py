@@ -5,11 +5,11 @@
 
 from elevenlabs import stream
 from elevenlabs.client import ElevenLabs
-elevenlabs = ElevenLabs()#api_key='sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15')
+elevenlabs = ElevenLabs(api_key='sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15')
 audio_stream = elevenlabs.text_to_speech.stream(
     text="This is a test",
     voice_id="JBFqnCBsd6RMkjVDRZzb",
-    model_id="eleven_multilingual_v2"
+    model_id="eleven_flash_v2_5"
 )
 # option 1: play the streamed audio locally
 stream(audio_stream)

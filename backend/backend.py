@@ -2,7 +2,7 @@ import os
 import json
 import threading
 from flask import Flask, jsonify, abort
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 from datetime import datetime
 
 BASE_DIR = os.path.dirname(__file__)
