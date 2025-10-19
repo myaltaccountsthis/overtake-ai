@@ -3,13 +3,18 @@ import json
 import threading
 from model.preprocess import preprocess_frame
 from model import track_util
-from flask import Flask, jsonify, abort, request
+from flask import Flask, jsonify, abort, request, Response
 from flask_cors import cross_origin, CORS
 from keras.models import load_model
 from datetime import datetime, timedelta
 import numpy as np
 import model.gradientAscent as gradient_ascent
 import textToSpeech
+import os
+from dotenv import load_dotenv
+from elevenlabs.client import ElevenLabs
+
+load_dotenv()
 
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "model", "model.keras")
@@ -17,6 +22,8 @@ SAMPLE_JSON_PATH = os.path.join(BASE_DIR, "data", "sample.json")
 
 app = Flask(__name__)
 CORS(app)
+
+client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
 
 # Load Keras model (if available)
 model = None
@@ -80,6 +87,17 @@ def get_next_data():
 def send_message():
     query = request.get_data()
     return textToSpeech.communicate(query)
+
+@app.route("/speak", methods=["POST"])
+def speak_message():
+    message = request.get_data().decode("utf-8")
+    audio_iterator = client.text_to_speech.convert(
+        voice_id="JBFqnCBsd6RMkjVDRZzb",
+        model_id="eleven_monolingual_v1",
+        text=message
+    )
+    audio_bytes = b"".join([chunk for chunk in audio_iterator])
+    return Response(audio_bytes, mimetype="audio/mpeg", headers={"Content-Disposition": "inline; filename=speech.mp3"})
 
 if __name__ == "__main__":
     # Run dev server. In production use a proper WSGI server.

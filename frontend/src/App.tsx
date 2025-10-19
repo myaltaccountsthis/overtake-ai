@@ -74,17 +74,8 @@ export default function App() {
     return tGood && pGood;
   }
   
-  const client = new ElevenLabsClient({
-    environment: "https://api.elevenlabs.io",
-    apiKey: "sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15"
-  });
-
   async function playAudio(message: string) {
-    const audioData = await client.textToSpeech.convert("JBFqnCBsd6RMkjVDRZzb", {
-        outputFormat: "mp3_44100_128",
-        text: message,
-        modelId: "eleven_flash_v2",
-    });
+    const audioData = await (await fetch(import.meta.env.VITE_BACKEND_ENDPOINT + "/speak", {method: "POST", body: message})).arrayBuffer();
     // audioData can be a ReadableStream — normalize it to an ArrayBuffer first
     const arrayBuffer = await new Response(audioData as any).arrayBuffer();
     const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });

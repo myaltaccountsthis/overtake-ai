@@ -1,11 +1,6 @@
-# from elevenlabs.client import ElevenLabs
-# elevenLabs = ElevenLabs(api_key='sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15')
-
-# print("Successful")
-
 # from elevenlabs import stream
 # from elevenlabs.client import ElevenLabs
-# elevenlabs = ElevenLabs(api_key='sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15')
+# elevenlabs = ElevenLabs(api_key='get api key from frontend env')
 # audio_stream = elevenlabs.text_to_speech.stream(
 #     text="This is a test",
 #     voice_id="JBFqnCBsd6RMkjVDRZzb",
