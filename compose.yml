@@ -9,9 +9,12 @@ services:
     env_file:
       - backend/.env
     ports:
-      - "5000:5000"
+      - "3003:5000"
     networks:
       - app-network
+    limits:
+      cpus: '1.0'
+      memory: 512M
 
   frontend:
     container_name: overtakeai-frontend
@@ -21,11 +24,14 @@ services:
     env_file:
       - frontend/.env
     ports:
-      - "80:80"
+      - "3002:80"
     depends_on:
       - backend
     networks:
       - app-network
+    limits:
+      cpus: '0.5'
+      memory: 256M
 
 networks:
   app-network:
