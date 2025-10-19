@@ -137,13 +137,21 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
     """
     for car in cars:
         percent = get_track_percentage((car['x'], car['y']), corner_points)
+        edge_percent = get_track_percentage((car['x'], car['y']), corner_points, turn_local=True)
         car['track_percent'] = percent
+        car['edge_percent'] = edge_percent
+    
+    prev_percent = 0.0
+    lap = 1
     from datetime import datetime
     for i in range(len(cars)):
-        j = i + 1
-        while j < len(cars) and (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(cars[i]['date'])).total_seconds() < 1:
-            j += 1
         curr_car = cars[i]
+        if curr_car['track_percent'] < prev_percent:
+            lap += 1
+        curr_car['lap'] = lap
+        j = i + 1
+        while j < len(cars) and (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(curr_car['date'])).total_seconds() < 1:
+            j += 1
         if (j == len(cars)):
             j -= 1
             if j == i:

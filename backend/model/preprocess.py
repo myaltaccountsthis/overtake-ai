@@ -5,7 +5,7 @@ from datetime import datetime
 
 from track_util import get_track_info
 
-PERCENTAGE_SUBDIVISIONS = 1
+PERCENTAGE_SUBDIVISIONS = 8
 EACH_PERCENTAGE = 1 / PERCENTAGE_SUBDIVISIONS
 NUM_GEARS = 10
 
