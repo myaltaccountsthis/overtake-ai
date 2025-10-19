@@ -33,6 +33,9 @@ export default function App() {
   const [elevenApiKey, setElevenApiKey] = useState<string>("");
   const [voiceId, setVoiceId] = useState<string>("alloy");
   const lastLap = [28.432, 32.145, 29.876]; // current lap sector times
+  const [flag, setFlag] = useState<string>("green"); // or yellow, red, SC, etc.
+  const [trackCondition, setTrackCondition] = useState<string>("Dry"); // Wet, Damp, etc.
+  const [stewardNotes, setStewardNotes] = useState<string>("No incidents");
 
   // Example lap data
   const laps = [
@@ -69,28 +72,28 @@ export default function App() {
     const pGood = pressure >= PRESS_MIN && pressure <= PRESS_MAX;
     return tGood && pGood;
   }
-//PUT GEMINI CODE HERE
+  //PUT GEMINI CODE HERE
   async function handleChat(message: string) {
-  const m = message.toLowerCase();
-  if (m.includes("tire")) {
-    const avg = avgTireTemp.toFixed(1);
-    const pressureAvg =
-      (tires.pressure.reduce((a, b) => a + b, 0) / tires.pressure.length).toFixed(2);
-    return `Avg tire temp ${avg}°C · Avg pressure ${pressureAvg} psi.`;
+    const m = message.toLowerCase();
+    if (m.includes("tire")) {
+      const avg = avgTireTemp.toFixed(1);
+      const pressureAvg = (
+        tires.pressure.reduce((a, b) => a + b, 0) / tires.pressure.length
+      ).toFixed(2);
+      return `Avg tire temp ${avg}°C · Avg pressure ${pressureAvg} psi.`;
+    }
+    if (m.includes("pit")) {
+      return `Estimated pit: ${pitPred.readable}.`;
+    }
+    if (m.includes("pass") || m.includes("overtake")) {
+      return `Pass in: ${passPred.readable}.`;
+    }
+    if (m.includes("position")) {
+      return `Current: ${currentPosition}, Predicted: ${predictedPlacement}.`;
+    }
+    // fallback: your single recommendation string
+    return rec;
   }
-  if (m.includes("pit")) {
-    return `Estimated pit: ${pitPred.readable}.`;
-  }
-  if (m.includes("pass") || m.includes("overtake")) {
-    return `Pass in: ${passPred.readable}.`;
-  }
-  if (m.includes("position")) {
-    return `Current: ${currentPosition}, Predicted: ${predictedPlacement}.`;
-  }
-  // fallback: your single recommendation string
-  return rec;
-}
-
 
   function tireClass(i: number) {
     return isTireGood(tires.temps[i], tires.pressure[i])
@@ -208,7 +211,10 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex flex-row-reverse gap-6 p-6 font-sans bg-slate-900 text-slate-100 min-h-screen">
+    <div
+      className="flex flex-row-reverse gap-6 p-6 font-sans bg-slate-900 text-slate-100 min-h-screen"
+      style={{ overflow: "hidden", height: "100vh" }}
+    >
       <aside className="w-80 bg-slate-800 text-slate-100 p-4 rounded-lg shadow-lg border border-slate-700">
         <h2 className="text-lg font-semibold mb-4">Sector Times</h2>
 
@@ -880,99 +886,137 @@ export default function App() {
           </div>
         </div>
 
-<section className="flex gap-6 mt-4">
-  {/* Suggestion Panel */}
-  <SuggestionPanel
-    suggestions={{
-      speed: "+5 km/h",
-      tirePressure: "32 PSI → 35 PSI",
-      fuelLevel: "Low → Refill recommended",
-    }}
-  />
+        <section className="flex gap-6 mt-4">
+          {/* Suggestion Panel */}
+          <SuggestionPanel
+            suggestions={{
+              speed: "+5 km/h",
+              tirePressure: "32 PSI → 35 PSI",
+              fuelLevel: "Low → Refill recommended",
+            }}
+          />
 
-  {/* Pedals + AudioPlayer container */}
-  <div className="flex gap-4">
-    {/* Pedals */}
-    <div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
-      <h3 className="text-lg font-semibold text-slate-100 mb-4">Pedals</h3>
+          {/* Pedals + AudioPlayer container */}
+          <div className="flex gap-4">
+            {/* Pedals */}
+            <div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
+              <h3 className="text-lg font-semibold text-slate-100 mb-4">
+                Pedals
+              </h3>
 
-      <div className="flex gap-4 justify-center">
-        {/* Throttle */}
-        <div className="flex flex-col items-center">
-          <div className="text-xs text-slate-300 mb-1">Throttle</div>
-          <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
-            <div
-              className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
-                throttle <= 50
-                  ? "bg-green-500"
-                  : throttle <= 80
-                  ? "bg-yellow-400"
-                  : "bg-red-500"
-              }`}
-              style={{ height: `${throttle}%` }}
-            ></div>
+              <div className="flex gap-4 justify-center">
+                {/* Throttle */}
+                <div className="flex flex-col items-center">
+                  <div className="text-xs text-slate-300 mb-1">Throttle</div>
+                  <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
+                    <div
+                      className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
+                        throttle <= 50
+                          ? "bg-green-500"
+                          : throttle <= 80
+                          ? "bg-yellow-400"
+                          : "bg-red-500"
+                      }`}
+                      style={{ height: `${throttle}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-slate-300 mt-1">{throttle}%</div>
+                </div>
+
+                {/* Brake */}
+                <div className="flex flex-col items-center">
+                  <div className="text-xs text-slate-300 mb-1">Brake</div>
+                  <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
+                    <div
+                      className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
+                        brake <= 50
+                          ? "bg-green-500"
+                          : brake <= 80
+                          ? "bg-yellow-400"
+                          : "bg-red-500"
+                      }`}
+                      style={{ height: `${brake}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-slate-300 mt-1">{brake}%</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Audio Player */}
+            {/* Audio Player */}
+            <div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
+              <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 text-green-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6v12h4l5-6-5-6H4z"
+                  />
+                </svg>
+                Audio
+              </h3>
+
+              {/* Vertical Buttons */}
+              <div className="flex flex-col gap-2 w-full items-center">
+                <button className="w-24 px-3 py-1 rounded bg-green-500 text-slate-900 font-medium hover:bg-green-600 transition">
+                  Play
+                </button>
+                <button className="w-24 px-3 py-1 rounded bg-yellow-400 text-slate-900 font-medium hover:bg-yellow-500 transition">
+                  Mute
+                </button>
+                <button className="w-24 px-3 py-1 rounded bg-red-500 text-slate-100 font-medium hover:bg-red-600 transition">
+                  Stop
+                </button>
+              </div>
+            </div>
+            <ChatBox onSend={handleChat} />
           </div>
-          <div className="text-xs text-slate-300 mt-1">{throttle}%</div>
-        </div>
-
-        {/* Brake */}
-        <div className="flex flex-col items-center">
-          <div className="text-xs text-slate-300 mb-1">Brake</div>
-          <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
-            <div
-              className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
-                brake <= 50
-                  ? "bg-green-500"
-                  : brake <= 80
-                  ? "bg-yellow-400"
-                  : "bg-red-500"
-              }`}
-              style={{ height: `${brake}%` }}
-            ></div>
+        </section>
+        <section className="flex gap-6 mt-4 w-full">
+          {/* Flag / Track Status */}
+          <div className="card flex-1 bg-slate-800 border border-slate-700 rounded p-4">
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">
+              Track Status
+            </h3>
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-6 h-6 rounded-full ${
+                  flag === "green"
+                    ? "bg-green-500"
+                    : flag === "yellow"
+                    ? "bg-yellow-400"
+                    : flag === "red"
+                    ? "bg-red-600"
+                    : "bg-gray-500"
+                }`}
+              ></div>
+              <span className="text-slate-100 font-medium">
+                {flag ? flag.toUpperCase() : "No flag"}
+              </span>
+            </div>
+            <div className="mt-2 text-slate-300 text-sm">
+              Track Condition: {trackCondition || "Dry"}
+            </div>
           </div>
-          <div className="text-xs text-slate-300 mt-1">{brake}%</div>
-        </div>
-      </div>
-    </div>
 
-    {/* Audio Player */}
-    {/* Audio Player */}
-<div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
-  <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center gap-2">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5 text-green-400"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6v12h4l5-6-5-6H4z"
-      />
-    </svg>
-    Audio
-  </h3>
-
-  {/* Vertical Buttons */}
-  <div className="flex flex-col gap-2 w-full items-center">
-    <button className="w-24 px-3 py-1 rounded bg-green-500 text-slate-900 font-medium hover:bg-green-600 transition">
-      Play
-    </button>
-    <button className="w-24 px-3 py-1 rounded bg-yellow-400 text-slate-900 font-medium hover:bg-yellow-500 transition">
-      Mute
-    </button>
-    <button className="w-24 px-3 py-1 rounded bg-red-500 text-slate-100 font-medium hover:bg-red-600 transition">
-      Stop
-    </button>
-  </div>
-</div>
-<ChatBox onSend={handleChat} />
-  </div>
-</section>
-          
+          {/* Steward Notes */}
+          <div className="card flex-1 bg-slate-800 border border-slate-700 rounded p-4" >
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">
+              Steward Notes
+            </h3>
+            <div className="text-slate-300 text-sm">
+              {stewardNotes || "No recent steward messages."}
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );
