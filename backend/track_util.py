@@ -39,7 +39,7 @@ def preprocess_car_data(cars: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     cars = list(filter(lambda car: all(abs(car[coord]) > 1 for coord in ["x", "y", "z"]), cars))
     cars = list(filter(lambda car: car["speed"] >= 50, cars))
-    cars = cars[1115:]  # Remove initial invalid data
+    cars = cars[1115:]  # Remove initial invalid data, specific value that's near start
     return cars
 
 def distance(p1: Tuple[float, float], p2: Tuple[float, float]) -> float:
@@ -85,14 +85,14 @@ def get_dist_from_track_and_dist(pos: Tuple[float, float], corner_points: List[T
     assert len(corner_points) > 1
 
     distance_covered = 0.0
-    total_length = 0.0
+    total_length = distance(corner_points[0], corner_points[-1])
     for i in range(len(corner_points) - 1):
         total_length += distance(corner_points[i], corner_points[i + 1])
     closest_dist = float('inf')
     closest_percent = 0.0
-    for i in range(len(corner_points) - 1):
+    for i in range(len(corner_points)):
         start = corner_points[i]
-        end = corner_points[i + 1]
+        end = corner_points[(i + 1) % len(corner_points)]
         segment_length = distance(start, end)
         assert segment_length > 0.0
 
@@ -131,9 +131,33 @@ def get_track_percentage(pos: Tuple[float, float], corner_points: List[Tuple[flo
     
     return closest_percent
 
+def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tuple[float, float]]) -> None:
+    """
+    Assign estimated percentage per second along the track for each car data point.
+    """
+    for car in cars:
+        percent = get_track_percentage((car['x'], car['y']), corner_points)
+        car['track_percent'] = percent
+    from datetime import datetime
+    for i in range(len(cars)):
+        j = i + 1
+        while j < len(cars) and (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(cars[i]['date'])).total_seconds() < 1:
+            j += 1
+        curr_car = cars[i]
+        if (j == len(cars)):
+            j -= 1
+            if j == i:
+                curr_car['percent_per_second'] = 0.0
+                continue
+        percent_diff = cars[j]['track_percent'] - curr_car['track_percent']
+        time_diff = (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(curr_car['date'])).total_seconds()
+        curr_car['percent_per_second'] = percent_diff / time_diff
+
+
 def get_track_info() -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
     """
-    Get predefined track corner points and start/finish points.
+    INIT FUNCTION
+    Get predefined track corner points and start/finish points. Returns cars and corner points.
     """
     cars = load_car_data("data/car_data.json")
     # print(f"Loaded {len(cars)} car records")
@@ -143,7 +167,7 @@ def get_track_info() -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
 
     corner_points = get_corner_points(cars)
     # print(f"Identified {len(corner_points)} corner points: {corner_points}")
-
+    assign_percent_per_second(cars, corner_points)
     # for car in cars[:30]:
     #     dist, percent = get_dist_from_track_and_dist((car['x'], car['y']), corner_points)
     #     print(f"Car at ({car['x']:.1f}, {car['y']:.1f}) is {dist:.1f} units from track, at {percent*100:.2f}% along the track")
@@ -185,9 +209,12 @@ if __name__ == "__main__":
     print(f"{len(cars)} car records after preprocessing")
 
     corner_points = get_corner_points(cars)
-    print(f"Identified {len(corner_points)} corner points: {corner_points}")
+    # print(f"Identified {len(corner_points)} corner points: {corner_points}")
 
-    for car in cars[:30]:
-        dist, percent = get_dist_from_track_and_dist((car['x'], car['y']), corner_points)
-        print(f"Car at ({car['x']:.1f}, {car['y']:.1f}) is {dist:.1f} units from track, at {percent*100:.2f}% along the track")
+    assign_percent_per_second(cars, corner_points)
+    # print("Assigned percent per second to car data: ", [cars[i]["percent_per_second"] for i in range(20)])
+
+    # for car in cars[:30]:
+    #     dist, percent = get_dist_from_track_and_dist((car['x'], car['y']), corner_points)
+    #     print(f"Car at ({car['x']:.1f}, {car['y']:.1f}) is {dist:.1f} units from track, at {percent*100:.2f}% along the track")
     plot_car_data(cars, corner_points)
