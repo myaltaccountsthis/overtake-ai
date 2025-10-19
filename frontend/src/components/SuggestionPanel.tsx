@@ -8,7 +8,7 @@ interface SuggestionPanelProps {
 
 export default function SuggestionPanel({ suggestions }: SuggestionPanelProps) {
   return (
-    <section className="h-64 flex flex-col gap-2 bg-slate-800 p-4 rounded border border-slate-700">
+    <section className="h-64 w-[245px] flex flex-col gap-2 bg-slate-800 p-4 rounded border border-slate-700">
       <h3 className="text-lg font-semibold text-slate-100 mb-2">Suggestions</h3>
       {Object.keys(suggestions).length === 0 ? (
         <div className="text-slate-400 text-sm">No suggestions available</div>

@@ -26,7 +26,7 @@ export default function App() {
   });
   const [trackTemp, setTrackTemp] = useState<number>(40);
   const [airTemp, setAirTemp] = useState<number>(30);
-  const [lapTimeSec, setLapTimeSec] = useState<number>(85);
+  const [lapTimeSec, setLapTimeSec] = useState<number>(109.83);
   const [remainingLaps, setRemainingLaps] = useState<number>(20);
   const [currentPosition, setCurrentPosition] = useState<number>(5);
   const [sessionId, setSessionId] = useState<string>("10033");
@@ -891,8 +891,8 @@ export default function App() {
           <SuggestionPanel
             suggestions={{
               speed: "+5 km/h",
-              tirePressure: "32 PSI → 35 PSI",
-              fuelLevel: "Low → Refill recommended",
+              tirePressure: "+3",
+              fuelLevel: "Refill",
             }}
           />
 
