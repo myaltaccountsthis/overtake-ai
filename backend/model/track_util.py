@@ -12,7 +12,8 @@ def load_car_data(path: str = None) -> List[Dict[str, Any]]:
       - a single object -> returned as [object]
     """
     if path is None:
-        path = Path(__file__).parent / "car_data.json"
+        path = "data/car_data.json"
+    print(path)
     path = Path(path)
 
     if not path.exists():
@@ -138,11 +139,8 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
     """
     for car in cars:
         percent = get_track_percentage((car['x'], car['y']), corner_points)
-        edge_percent = get_track_percentage((car['x'], car['y']), corner_points, turn_local=True)
         car['track_percent'] = percent
-        car['edge_percent'] = edge_percent
     
-    avg_lap_time = 93.0 # seconds
     prev_percent = 0.0
     # prev_lap_percent = 0.0
     # start_time = datetime.fromisoformat(cars[0]['date'])
@@ -176,8 +174,7 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
                 continue
         percent_diff = cars[j]['track_percent'] - curr_car['track_percent']
         time_diff = (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(curr_car['date'])).total_seconds()
-        curr_car['percent_per_second'] = percent_diff / time_diff
-        curr_car['estimate_lap_time'] = (avg_lap_time + (1 / curr_car['percent_per_second'])) / 2
+        curr_car['percent_per_second'] = max(percent_diff, 0) / time_diff
 
 
 def get_track_info(file_path: str = "data/car_data.json") -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:

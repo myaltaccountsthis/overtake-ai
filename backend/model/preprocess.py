@@ -3,7 +3,7 @@ import math
 import numpy as np
 from datetime import datetime
 
-from track_util import get_track_info
+from model.track_util import get_track_info # needs to have model. to run, can't have to train
 
 PERCENTAGE_SUBDIVISIONS = 8
 EACH_PERCENTAGE = 1 / PERCENTAGE_SUBDIVISIONS
@@ -23,7 +23,6 @@ def preprocess_frame(entry: dict) -> np.ndarray:
     rpm = entry["rpm"]
     n_gear = entry["n_gear"]
     drs = 1 if entry["drs"] >= 10 else 0
-    edge_percent = entry["edge_percent"]
 
 
     # gear_one_hot = [0] * NUM_GEARS
@@ -33,7 +32,7 @@ def preprocess_frame(entry: dict) -> np.ndarray:
     lap_percentage_subdivision = get_lap_percentage_subdivision(lap_percentage)
 
     # features = np.concatenate([np.array([speed, throttle, brake, rpm, drs]), gear_one_hot, lap_percentage_subdivision])
-    features = np.concatenate([np.array([speed, throttle, brake, rpm, drs, n_gear, edge_percent]), lap_percentage_subdivision])
+    features = np.concatenate([np.array([speed, throttle, brake, rpm, drs, n_gear]), lap_percentage_subdivision])
     return features
 
 # Preprocess the data
@@ -49,9 +48,9 @@ def preprocess_data(file_path: str) -> tuple[list, list]:
         features_list.append(features)
 
         # labels.append((data[i + 1]["track_percent"] - entry["track_percent"]) / (datetime.fromisoformat(data[i + 1]["date"]).timestamp() - datetime.fromisoformat(entry["date"]).timestamp()))
-        labels.append([data[i]["percent_per_second"], data[i]["estimate_lap_time"]])
-        if labels[-1][0] < 0:
-            print("Negative label detected:", features_list[-1], labels[-1][0])
+        labels.append(data[i]["percent_per_second"])
+        if labels[-1] < 0:
+            print("Negative label detected:", features_list[-1], labels[-1])
         # labels.append(data[i + 1]["track_percent"] - entry["track_percent"])
 
     return np.array(features_list), np.array(labels)

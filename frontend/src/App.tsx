@@ -27,7 +27,7 @@ export default function App() {
   const [trackTemp, setTrackTemp] = useState<number>(40);
   const [airTemp, setAirTemp] = useState<number>(30);
   const [lapTimeSec, setLapTimeSec] = useState<number>(109.83);
-  const [remainingLaps, setRemainingLaps] = useState<number>(20);
+  const [remainingLaps, setRemainingLaps] = useState<number>(30);
   const [currentPosition, setCurrentPosition] = useState<number>(5);
   const [sessionId, setSessionId] = useState<string>("10033");
   const [elevenApiKey, setElevenApiKey] = useState<string>("");
@@ -206,6 +206,41 @@ export default function App() {
     }
   }
 
+  const [b, setB] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/get_data")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setSpeed(data.speed);
+        setFrontSpeed(data.speed + Math.random() * 3);
+        setRpm(data.rpm);
+        setGear(data.n_gear);
+        setThrottle(data.throttle);
+        setBrake(data.brake);
+        setLapTimeSec(data.estimated_lap_time);
+        setRemainingLaps(30 - data.lap);
+        let position = 0;
+        for (let i = 0; i < data.ranking.length; i++) {
+          if (data.ranking[i].name === data.info.driver) {
+            position = i + 1;
+            break;
+          }
+        }
+        setCurrentPosition(position);
+        const newSuggestions: { [key: string]: string } = {};
+        Object.entries(data.suggestions).forEach(([key, value]: [any, any]) => {
+          newSuggestions[key] = value.toFixed(2).toString();
+        });
+        setSuggestions(newSuggestions);
+        setTimeout(function() {
+          setB(!b);
+        }, 100);
+      });
+  }, [b]);
+
   useEffect(() => {
     // placeholder for future telemetry polling
   }, []);
@@ -347,7 +382,7 @@ export default function App() {
                 Lap time (s)
               </label>
               <div className="mt-1">
-                <span className="select-none text-slate-100">{lapTimeSec}</span>
+                <span className="select-none text-slate-100">{lapTimeSec.toPrecision(2)}</span>
               </div>
             </div>
           </div>
@@ -872,7 +907,7 @@ export default function App() {
               </label>
               <div className="mt-1">
                 <span className="select-none text-slate-100">
-                  {frontSpeed} km/h
+                  {Math.floor(frontSpeed)} km/h
                 </span>
               </div>
 
@@ -889,11 +924,7 @@ export default function App() {
         <section className="flex gap-6 mt-4">
           {/* Suggestion Panel */}
           <SuggestionPanel
-            suggestions={{
-              speed: "+5 km/h",
-              tirePressure: "+3",
-              fuelLevel: "Refill",
-            }}
+            suggestions={suggestions}
           />
 
           {/* Pedals + AudioPlayer container */}
