@@ -78,7 +78,7 @@ def get_next_data():
 
 @app.route("/message", methods=["POST"])
 def send_message():
-    query = request.args.get("body")
+    query = request.get_data()
     return textToSpeech.communicate(query)
 
 if __name__ == "__main__":

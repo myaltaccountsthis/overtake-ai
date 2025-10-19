@@ -1,7 +1,7 @@
 import os
 import json # Used for loading and dumping JSON
 import glob # Used for finding your .json files
-import google.generativeai as genai
+from google import generativeai as genai
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # --- Configuration ---
 load_dotenv()
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # --- 1. Load All JSON Files on Startup ---
 def load_json_data(data_directory="data"):
