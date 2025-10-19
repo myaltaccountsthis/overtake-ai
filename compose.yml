@@ -12,9 +12,11 @@ services:
       - "3003:5000"
     networks:
       - app-network
-    limits:
-      cpus: '1.0'
-      memory: 512M
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
   frontend:
     container_name: overtakeai-frontend
@@ -29,9 +31,11 @@ services:
       - backend
     networks:
       - app-network
-    limits:
-      cpus: '0.5'
-      memory: 256M
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
 networks:
   app-network:
