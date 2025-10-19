@@ -131,6 +131,25 @@ def get_track_percentage(pos: Tuple[float, float], corner_points: List[Tuple[flo
     
     return closest_percent
 
+def get_track_info() -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
+    """
+    Get predefined track corner points and start/finish points.
+    """
+    cars = load_car_data("data/car_data.json")
+    # print(f"Loaded {len(cars)} car records")
+    
+    cars = preprocess_car_data(cars)
+    # print(f"{len(cars)} car records after preprocessing")
+
+    corner_points = get_corner_points(cars)
+    # print(f"Identified {len(corner_points)} corner points: {corner_points}")
+
+    # for car in cars[:30]:
+    #     dist, percent = get_dist_from_track_and_dist((car['x'], car['y']), corner_points)
+    #     print(f"Car at ({car['x']:.1f}, {car['y']:.1f}) is {dist:.1f} units from track, at {percent*100:.2f}% along the track")
+    # plot_car_data(cars, corner_points)
+    return cars, corner_points
+
 def plot_car_data(cars: List[Dict[str, Any]], corner_points: List[Tuple[float, float]] = []) -> None:
     """
     Plot car data on a 2D scatter plot using matplotlib.
