@@ -24,6 +24,19 @@ import faiss
 from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+from google import genai
+from dotenv import load_dotenv
+
+load_dotenv()
+client = genai.Client()
+
+def generateResponse(message):
+    response = client.models.generate_content(
+        model = "gemini-2.5-flash-lite",
+        contents = message,
+    )
+    return response.text
+
 
 # Simple document class to store text and metadata
 class Document:
@@ -108,7 +121,13 @@ def find_similar_documents(query_text, k=1):
 
 def communicate (query):
     matches = find_similar_documents(query)
-    print(f"\nFound {len(matches)} similar items:")
-    for i, match in enumerate(matches, 1):
-        print(f"\n{i}. Distance: {match['distance']:.3f}")
-        print(f"   Content: {match['text'][:200]}...")
+    message = f"""An F1 engineer has asked you {query}, and you need to incorporate the relevant facts in {matches} into a cohesive response.
+    Do not include everything since not everything is relevant to the user's query. Do NOT include the full data itself, that is meant to be hidden from the user.
+    They are only supposed to know what they asked for. Keep your responses concise and short."""
+    # print(f"\nFound {len(matches)} similar items:")
+    # for i, match in enumerate(matches, 1):
+    #     print(f"\n{i}. Distance: {match['distance']:.3f}")
+    #     print(f"   Content: {match['text'][:200]}...")
+    return generateResponse(message=message)
+
+print(communicate("what's the drs of verstappen"))

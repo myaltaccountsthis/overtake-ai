@@ -4,6 +4,7 @@ import WheelTooltip from "./components/WheelTooltip";
 import SuggestionPanel from "./components/SuggestionPanel";
 import AudioPlayer from "./components/AudioPlayer";
 import ChatBox from "./components/ChatBox";
+import { ElevenLabsClient, play } from "@elevenlabs/elevenlabs-js";
 
 type Tires = {
   temps: number[];
@@ -72,9 +73,32 @@ export default function App() {
     const pGood = pressure >= PRESS_MIN && pressure <= PRESS_MAX;
     return tGood && pGood;
   }
+  
+  const client = new ElevenLabsClient({
+    environment: "https://api.elevenlabs.io",
+    apiKey: "sk_22ec0ec93084c727bcaad9e44dfdcc80b1a64a01f3bc5a15"
+  });
+
+  async function playAudio(message: string) {
+    const audioData = await client.textToSpeech.convert("JBFqnCBsd6RMkjVDRZzb", {
+        outputFormat: "mp3_44100_128",
+        text: message,
+        modelId: "eleven_flash_v2",
+    });
+    // audioData can be a ReadableStream — normalize it to an ArrayBuffer first
+    const arrayBuffer = await new Response(audioData as any).arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+    const audioUrl = URL.createObjectURL(blob);
+    const audio = new Audio(audioUrl);
+    await audio.play();
+  }
+
+
   //PUT GEMINI CODE HERE
   async function handleChat(message: string) {
-    return await (await fetch("http://127.0.0.1:5000/message", {method: "POST", body: message})).text();
+    const response = await (await fetch("http://127.0.0.1:5000/message", {method: "POST", body: message})).text();
+    playAudio(response);
+    return response;
     // const m = message.toLowerCase();
     // if (m.includes("tire")) {
     //   const avg = avgTireTemp.toFixed(1);
@@ -241,6 +265,7 @@ export default function App() {
         }, 100);
       });
   }, [b]);
+  
 
   useEffect(() => {
     // placeholder for future telemetry polling

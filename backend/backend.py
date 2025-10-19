@@ -3,7 +3,7 @@ import json
 import threading
 from model.preprocess import preprocess_frame
 from model import track_util
-from flask import Flask, jsonify, abort
+from flask import Flask, jsonify, abort, request
 from flask_cors import cross_origin, CORS
 from keras.models import load_model
 from datetime import datetime, timedelta
@@ -77,7 +77,8 @@ def get_next_data():
     return jsonify(data)
 
 @app.route("/message", methods=["POST"])
-def send_message(query: str):
+def send_message():
+    query = request.args.get("body")
     return textToSpeech.communicate(query)
 
 if __name__ == "__main__":
