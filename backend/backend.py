@@ -9,6 +9,7 @@ from keras.models import load_model
 from datetime import datetime, timedelta
 import numpy as np
 import model.gradientAscent as gradient_ascent
+import textToSpeech
 
 BASE_DIR = os.path.dirname(__file__)
 MODEL_PATH = os.path.join(BASE_DIR, "model", "model.keras")
@@ -74,6 +75,10 @@ def get_next_data():
     # Optionally, you could run the model here on the data if the model input format is known.
     # For now we simply return the data dictionary as-is.
     return jsonify(data)
+
+@app.route("/message", methods=["POST"])
+def send_message(query: str):
+    return textToSpeech.communicate(query)
 
 if __name__ == "__main__":
     # Run dev server. In production use a proper WSGI server.

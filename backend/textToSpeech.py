@@ -71,7 +71,6 @@ try:
 except:
     pass
 # 2. Build FAISS index from documents
-print("Building FAISS index...")
 dimension = 256  # matches compute_embedding output dimension
 index = faiss.IndexFlatL2(dimension)
 
@@ -106,12 +105,8 @@ def find_similar_documents(query_text, k=1):
             })
     return results
 
-print("Ready for similarity search. Type 'quit' to exit.")
-while True:
-    query = input("\nEnter search query (or 'quit' to exit): ")
-    if query.lower() == 'quit':
-        break
-        
+
+def communicate (query):
     matches = find_similar_documents(query)
     print(f"\nFound {len(matches)} similar items:")
     for i, match in enumerate(matches, 1):
