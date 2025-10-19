@@ -18,67 +18,102 @@
 #     if isinstance(chunk, bytes):
 #         print(chunk)
 
-from langchain_community.document_loaders.csv_loader import CSVLoader
-from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings
-from langchain_classic.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain_classic.chains import LLMChain
-# from dotenv import load_dotenv
-from langchain_classic.memory import ConversationBufferMemory
+import json
+import numpy as np
+import faiss
+from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-memory = ConversationBufferMemory()
 
-# load_dotenv()
-exit()
+# Simple document class to store text and metadata
+class Document:
+    def __init__(self, text, metadata=None):
+        self.text = text
+        self.metadata = metadata or {}
 
-# 1. Vectorise the sales response csv data
-loader = CSVLoader(file_path="C:\Users\mvel2\OneDrive\Documents\GitHub\hacktx-2025\backend\data\car_data.json")
-documents = loader.load()
+def compute_embedding(text):
+    """Convert text to a simple vector using character frequencies.
+    This is a basic embedding method that doesn't require external models.
+    It creates a 256-dimensional vector based on character frequencies."""
+    # Create a fixed-size vector (256 dims) from character frequencies
+    vec = np.zeros(256, dtype=np.float32)
+    if not text:
+        return vec
+    # Count character frequencies, normalize, and hash into the vector
+    for char in text:
+        idx = hash(char) % 256
+        vec[idx] += 1.0
+    # Normalize the vector
+    norm = np.linalg.norm(vec)
+    if norm > 0:
+        vec /= norm
+    return vec
 
-embeddings = OpenAIEmbeddings()
-db = FAISS.from_documents(documents, embeddings)
+# 1. Load and process the data
+try:
+    data_path = Path(__file__).parent / "data" / "car_data.json"
+    if not data_path.exists():
+        data_path = Path(__file__).parent / "data" / "car_data.csv"
+    
+    if data_path.suffix == '.json':
+        raw_data = json.loads(data_path.read_text(encoding='utf-8'))
+        if isinstance(raw_data, list):
+            documents = [Document(json.dumps(item)) for item in raw_data]
+        else:
+            documents = [Document(json.dumps(raw_data))]
+    else:  # CSV
+        import csv
+        documents = []
+        with open(data_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                documents.append(Document(json.dumps(row)))
+except:
+    pass
+# 2. Build FAISS index from documents
+print("Building FAISS index...")
+dimension = 256  # matches compute_embedding output dimension
+index = faiss.IndexFlatL2(dimension)
 
-# 2. Function for similarity search
+# Compute embeddings for all documents
+doc_embeddings = []
+for doc in documents:
+    vec = compute_embedding(doc.text)
+    doc_embeddings.append(vec)
 
+# Add vectors to FAISS index
+index.add(np.array(doc_embeddings))
 
-def retrieve_info(query):
-    similar_response = db.similarity_search(query, k=1)
+def find_similar_documents(query_text, k=1):
+    """Find k most similar documents to the query text."""
+    # Convert query to vector (same dimension as document vectors)
+    query_vector = compute_embedding(query_text)
+    # Reshape for faiss search
+    query_vector = query_vector.reshape(1, -1)
+    
+    # Search the index
+    distances, indices = index.search(query_vector, k)
+    
+    # Return the matching documents and their distances
+    results = []
+    for idx, dist in zip(indices[0], distances[0]):
+        if idx < len(documents):  # ensure valid index
+            doc = documents[idx]
+            results.append({
+                'text': doc.text,
+                'distance': float(dist),
+                'metadata': doc.metadata
+            })
+    return results
 
-    page_contents_array = [doc.page_content for doc in similar_response]
-
-    return page_contents_array
-
-
-# 3. Setup LLMChain & prompts
-llm = ChatOpenAI(temperature=0.7, model="gpt-3.5-turbo-16k-0613")
-
-name = "Jeff"
-
-template = """
-reply with a hello
-"""
-
-prompt = PromptTemplate(
-    input_variables=["message", "best_practice"],
-    template=template
-)
-
-chain = LLMChain(llm=llm, prompt=prompt)
-
-
-# 4. Retrieval augmented generation
-def  generate_response(message):
-    best_practice = retrieve_info(message)
-    response = chain.run(message=message, best_practice=best_practice)
-    return response
-
-
-while (True):
-    userInput = input("Enter your message: ")
-    memory.chat_memory.add_user_message(userInput)
-
-    response = generate_response(userInput)
-    memory.chat_memory.add_ai_message(response)
-    print(response + "\n")
+print("Ready for similarity search. Type 'quit' to exit.")
+while True:
+    query = input("\nEnter search query (or 'quit' to exit): ")
+    if query.lower() == 'quit':
+        break
+        
+    matches = find_similar_documents(query)
+    print(f"\nFound {len(matches)} similar items:")
+    for i, match in enumerate(matches, 1):
+        print(f"\n{i}. Distance: {match['distance']:.3f}")
+        print(f"   Content: {match['text'][:200]}...")
