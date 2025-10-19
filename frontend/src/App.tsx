@@ -96,7 +96,7 @@ export default function App() {
 
   //PUT GEMINI CODE HERE
   async function handleChat(message: string) {
-    const response = await (await fetch("http://127.0.0.1:5000/message", {method: "POST", body: message})).text();
+    const response = await (await fetch(import.meta.env.VITE_BACKEND_ENDPOINT + "/message", {method: "POST", body: message})).text();
     playAudio(response);
     return response;
     // const m = message.toLowerCase();
@@ -235,7 +235,7 @@ export default function App() {
   const [suggestions, setSuggestions] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/get_data")
+    fetch(import.meta.env.VITE_BACKEND_ENDPOINT + "/get_data")
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
@@ -1023,7 +1023,14 @@ export default function App() {
 
               {/* Vertical Buttons */}
               <div className="flex flex-col gap-2 w-full items-center">
-                <button className="w-24 px-3 py-1 rounded bg-green-500 text-slate-900 font-medium hover:bg-green-600 transition">
+                <button
+                  className="w-24 px-3 py-1 rounded bg-green-500 text-slate-900 font-medium hover:bg-green-600 transition"
+                  onClick={() =>
+                    speak(
+                      "Lando Norris's pace is good and the distance between the next car is closing you are 1 second away"
+                    )
+                  }
+                >
                   Play
                 </button>
                 <button className="w-24 px-3 py-1 rounded bg-yellow-400 text-slate-900 font-medium hover:bg-yellow-500 transition">

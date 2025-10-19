@@ -119,7 +119,6 @@ export default function ChartsPlaceholder({
       </svg>
 
       <div className="text-sm text-slate-400 mt-2">
-        Placeholder chart — replace with real data from backend
       </div>
     </div>
   );
