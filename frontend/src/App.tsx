@@ -74,25 +74,26 @@ export default function App() {
   }
   //PUT GEMINI CODE HERE
   async function handleChat(message: string) {
-    const m = message.toLowerCase();
-    if (m.includes("tire")) {
-      const avg = avgTireTemp.toFixed(1);
-      const pressureAvg = (
-        tires.pressure.reduce((a, b) => a + b, 0) / tires.pressure.length
-      ).toFixed(2);
-      return `Avg tire temp ${avg}°C · Avg pressure ${pressureAvg} psi.`;
-    }
-    if (m.includes("pit")) {
-      return `Estimated pit: ${pitPred.readable}.`;
-    }
-    if (m.includes("pass") || m.includes("overtake")) {
-      return `Pass in: ${passPred.readable}.`;
-    }
-    if (m.includes("position")) {
-      return `Current: ${currentPosition}, Predicted: ${predictedPlacement}.`;
-    }
+    return await (await fetch("http://127.0.0.1:5000/message", {method: "POST", body: message})).text();
+    // const m = message.toLowerCase();
+    // if (m.includes("tire")) {
+    //   const avg = avgTireTemp.toFixed(1);
+    //   const pressureAvg = (
+    //     tires.pressure.reduce((a, b) => a + b, 0) / tires.pressure.length
+    //   ).toFixed(2);
+    //   return `Avg tire temp ${avg}°C · Avg pressure ${pressureAvg} psi.`;
+    // }
+    // if (m.includes("pit")) {
+    //   return `Estimated pit: ${pitPred.readable}.`;
+    // }
+    // if (m.includes("pass") || m.includes("overtake")) {
+    //   return `Pass in: ${passPred.readable}.`;
+    // }
+    // if (m.includes("position")) {
+    //   return `Current: ${currentPosition}, Predicted: ${predictedPlacement}.`;
+    // }
     // fallback: your single recommendation string
-    return rec;
+    // return rec;
   }
 
   function tireClass(i: number) {
@@ -222,14 +223,14 @@ export default function App() {
         setBrake(data.brake);
         setLapTimeSec(data.estimated_lap_time);
         setRemainingLaps(30 - data.lap);
-        let position = 0;
-        for (let i = 0; i < data.ranking.length; i++) {
-          if (data.ranking[i].name === data.info.driver) {
-            position = i + 1;
-            break;
-          }
-        }
-        setCurrentPosition(position);
+        // let position = 0;
+        // for (let i = 0; i < data.ranking.length; i++) {
+        //   if (data.ranking[i].name === data.info.driver) {
+        //     position = i + 1;
+        //     break;
+        //   }
+        // }
+        // setCurrentPosition(position);
         const newSuggestions: { [key: string]: string } = {};
         Object.entries(data.suggestions).forEach(([key, value]: [any, any]) => {
           newSuggestions[key] = value.toFixed(2).toString();
