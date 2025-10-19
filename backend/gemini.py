@@ -31,7 +31,10 @@ def load_json_data(data_directory="data"):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                all_data.append(data)
+                if isinstance(data, list):
+                    all_data.extend(data[:100])  # If the JSON is a list, extend the main list
+                else:
+                    all_data.append(data)
         except Exception as e:
             print(f"Error loading {file_path}: {e}")
             
