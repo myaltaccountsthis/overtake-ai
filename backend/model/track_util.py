@@ -154,12 +154,12 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
         curr_car['percent_per_second'] = percent_diff / time_diff
 
 
-def get_track_info() -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
+def get_track_info(file_path: str = "data/car_data.json") -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
     """
     INIT FUNCTION
     Get predefined track corner points and start/finish points. Returns cars and corner points.
     """
-    cars = load_car_data("data/car_data.json")
+    cars = load_car_data(file_path)
     # print(f"Loaded {len(cars)} car records")
     
     cars = preprocess_car_data(cars)
