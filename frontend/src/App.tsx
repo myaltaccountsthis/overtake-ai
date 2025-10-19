@@ -3,6 +3,7 @@ import TelemetryPanel from "./components/TelemetryPanel";
 import WheelTooltip from "./components/WheelTooltip";
 import SuggestionPanel from "./components/SuggestionPanel";
 import AudioPlayer from "./components/AudioPlayer";
+import ChatBox from "./components/ChatBox";
 
 type Tires = {
   temps: number[];
@@ -68,6 +69,28 @@ export default function App() {
     const pGood = pressure >= PRESS_MIN && pressure <= PRESS_MAX;
     return tGood && pGood;
   }
+//PUT GEMINI CODE HERE
+  async function handleChat(message: string) {
+  const m = message.toLowerCase();
+  if (m.includes("tire")) {
+    const avg = avgTireTemp.toFixed(1);
+    const pressureAvg =
+      (tires.pressure.reduce((a, b) => a + b, 0) / tires.pressure.length).toFixed(2);
+    return `Avg tire temp ${avg}°C · Avg pressure ${pressureAvg} psi.`;
+  }
+  if (m.includes("pit")) {
+    return `Estimated pit: ${pitPred.readable}.`;
+  }
+  if (m.includes("pass") || m.includes("overtake")) {
+    return `Pass in: ${passPred.readable}.`;
+  }
+  if (m.includes("position")) {
+    return `Current: ${currentPosition}, Predicted: ${predictedPlacement}.`;
+  }
+  // fallback: your single recommendation string
+  return rec;
+}
+
 
   function tireClass(i: number) {
     return isTireGood(tires.temps[i], tires.pressure[i])
@@ -946,7 +969,7 @@ export default function App() {
     </button>
   </div>
 </div>
-
+<ChatBox onSend={handleChat} />
   </div>
 </section>
           
