@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 from typing import List, Dict, Any, Tuple
+from datetime import datetime
 
 def load_car_data(path: str = None) -> List[Dict[str, Any]]:
     """
@@ -141,14 +142,30 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
         car['track_percent'] = percent
         car['edge_percent'] = edge_percent
     
+    avg_lap_time = 93.0 # seconds
     prev_percent = 0.0
+    # prev_lap_percent = 0.0
+    # start_time = datetime.fromisoformat(cars[0]['date'])
     lap = 1
-    from datetime import datetime
+    # points_buffer = []
+    # laps = []
     for i in range(len(cars)):
         curr_car = cars[i]
         if curr_car['track_percent'] < prev_percent:
             lap += 1
+            # lap_time = (datetime.fromisoformat(curr_car['date']) - start_time).total_seconds()
+            # lap_time /= (1 + curr_car['track_percent'] - prev_lap_percent)
+            # for buffered_car in points_buffer:
+            #     buffered_car['lap_time'] = lap_time
+            # laps.append(lap_time)
+            # start_time = datetime.fromisoformat(curr_car['date'])
+            # points_buffer = []
+            # prev_lap_percent = curr_car['track_percent']
+            # print(curr_car["track_percent"])
         curr_car['lap'] = lap
+        prev_percent = curr_car['track_percent']
+        # points_buffer.append(curr_car)
+
         j = i + 1
         while j < len(cars) and (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(curr_car['date'])).total_seconds() < 1:
             j += 1
@@ -160,6 +177,7 @@ def assign_percent_per_second(cars: List[Dict[str, Any]], corner_points: List[Tu
         percent_diff = cars[j]['track_percent'] - curr_car['track_percent']
         time_diff = (datetime.fromisoformat(cars[j]['date']) - datetime.fromisoformat(curr_car['date'])).total_seconds()
         curr_car['percent_per_second'] = percent_diff / time_diff
+        curr_car['estimate_lap_time'] = (avg_lap_time + (1 / curr_car['percent_per_second'])) / 2
 
 
 def get_track_info(file_path: str = "data/car_data.json") -> Tuple[List[Dict[str, Any]], List[Tuple[float, float]]]:
@@ -195,7 +213,7 @@ def plot_car_data(cars: List[Dict[str, Any]], corner_points: List[Tuple[float, f
     plt.scatter(x_coords, y_coords, s=1, alpha=0.5)
 
     assert len(corner_points) > 0
-    plt.scatter([corner_points[0][0]], [corner_points[0][1]], s=50, color='green', label='Start/End Points')
+    plt.scatter([corner_points[0][0]], [corner_points[0][1]], s=50, color='green', label='Start Point')
     cp_x, cp_y = zip(*corner_points)
     plt.scatter(cp_x, cp_y, s=10, color='red', label='Corner Points')
     plt.legend()
@@ -210,7 +228,7 @@ def plot_car_data(cars: List[Dict[str, Any]], corner_points: List[Tuple[float, f
 
 # Example usage (remove or adapt in production)
 if __name__ == "__main__":
-    cars = load_car_data("data/car_data.json")  # looks for car_data.json next to this file
+    cars = load_car_data("../data/car_data.json")  # looks for car_data.json next to this file
     print(f"Loaded {len(cars)} car records")
     
     cars = preprocess_car_data(cars)
@@ -221,6 +239,7 @@ if __name__ == "__main__":
 
     assign_percent_per_second(cars, corner_points)
     # print("Assigned percent per second to car data: ", [cars[i]["percent_per_second"] for i in range(20)])
+    print("First 10 cars: ", cars[:10])
 
     # for car in cars[:30]:
     #     dist, percent = get_dist_from_track_and_dist((car['x'], car['y']), corner_points)
