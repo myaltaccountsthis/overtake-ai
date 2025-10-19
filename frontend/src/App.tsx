@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import TelemetryPanel from "./components/TelemetryPanel";
 import WheelTooltip from "./components/WheelTooltip";
+import SuggestionPanel from "./components/SuggestionPanel";
+import AudioPlayer from "./components/AudioPlayer";
 
 type Tires = {
   temps: number[];
@@ -29,26 +31,26 @@ export default function App() {
   const [sessionId, setSessionId] = useState<string>("10033");
   const [elevenApiKey, setElevenApiKey] = useState<string>("");
   const [voiceId, setVoiceId] = useState<string>("alloy");
-   const lastLap = [28.432, 32.145, 29.876]; // current lap sector times
+  const lastLap = [28.432, 32.145, 29.876]; // current lap sector times
 
-// Example lap data
-const laps = [
-  {
-    lap: 3, // most recent
-    sectors: [28.432, 32.145, 29.876],
-  },
-  {
-    lap: 2,
-    sectors: [28.500, 32.200, 30.100],
-  },
-  {
-    lap: 1,
-    sectors: [28.600, 32.400, 30.300],
-  },
-];
+  // Example lap data
+  const laps = [
+    {
+      lap: 3, // most recent
+      sectors: [28.432, 32.145, 29.876],
+    },
+    {
+      lap: 2,
+      sectors: [28.5, 32.2, 30.1],
+    },
+    {
+      lap: 1,
+      sectors: [28.6, 32.4, 30.3],
+    },
+  ];
 
-const personalBest = [28.432, 32.305, 29.876]; // personal best per sector
-const fastestOnTrack = [28.900, 32.000, 29.850]; // fastest sector times on track
+  const personalBest = [28.432, 32.305, 29.876]; // personal best per sector
+  const fastestOnTrack = [28.9, 32.0, 29.85]; // fastest sector times on track
 
   const avgTireTemp = useMemo(
     () => tires.temps.reduce((a, b) => a + b, 0) / tires.temps.length,
@@ -60,7 +62,6 @@ const fastestOnTrack = [28.900, 32.000, 29.850]; // fastest sector times on trac
   const TEMP_MAX = 95;
   const PRESS_MIN = 22;
   const PRESS_MAX = 24;
-  
 
   function isTireGood(temp: number, pressure: number) {
     const tGood = temp >= TEMP_MIN && temp <= TEMP_MAX;
@@ -185,47 +186,52 @@ const fastestOnTrack = [28.900, 32.000, 29.850]; // fastest sector times on trac
 
   return (
     <div className="flex flex-row-reverse gap-6 p-6 font-sans bg-slate-900 text-slate-100 min-h-screen">
-<aside className="w-80 bg-slate-800 text-slate-100 p-4 rounded-lg shadow-lg border border-slate-700">
-      <h2 className="text-lg font-semibold mb-4">Sector Times</h2>
+      <aside className="w-80 bg-slate-800 text-slate-100 p-4 rounded-lg shadow-lg border border-slate-700">
+        <h2 className="text-lg font-semibold mb-4">Sector Times</h2>
 
-      <div className="space-y-4">
-        {laps.map((lap, lapIndex) => (
-          <div key={lap.lap} className="space-y-2 border-b border-slate-700 pb-2">
-            <h3 className="text-sm font-medium text-slate-300">Lap {lap.lap}</h3>
+        <div className="space-y-4">
+          {laps.map((lap, lapIndex) => (
+            <div
+              key={lap.lap}
+              className="space-y-2 border-b border-slate-700 pb-2"
+            >
+              <h3 className="text-sm font-medium text-slate-300">
+                Lap {lap.lap}
+              </h3>
 
-            {lap.sectors.map((time, i) => {
-              let type = "yellow"; // default worst
+              {lap.sectors.map((time, i) => {
+                let type = "yellow"; // default worst
 
-              if (time <= fastestOnTrack[i]) {
-                type = "purple"; // fastest on track
-              } else if (time < personalBest[i]) {
-                type = "green"; // personal best
-              }
+                if (time <= fastestOnTrack[i]) {
+                  type = "purple"; // fastest on track
+                } else if (time < personalBest[i]) {
+                  type = "green"; // personal best
+                }
 
-              return (
-                <div key={i} className="flex justify-between items-center">
-                  <span>{`Sector ${i + 1}`}</span>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-semibold ${
-                      type === "purple"
-                        ? "bg-purple-600"
-                        : type === "green"
-                        ? "bg-green-600"
-                        : "bg-yellow-500"
-                    }`}
-                  >
-                    {time.toFixed(3)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </aside>
+                return (
+                  <div key={i} className="flex justify-between items-center">
+                    <span>{`Sector ${i + 1}`}</span>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-semibold ${
+                        type === "purple"
+                          ? "bg-purple-600"
+                          : type === "green"
+                          ? "bg-green-600"
+                          : "bg-yellow-500"
+                      }`}
+                    >
+                      {time.toFixed(3)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </aside>
       <main className="flex-1">
         <div className="flex justify-center items-center gap-6 mb-4 w-full">
-          <h1 className="text-2xl font-bold text-slate-100">Race Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-100">Overtake AI</h1>
 
           {/* Focused Horizontal Leaderboard */}
           <div className="flex flex-wrap justify-center gap-2 text-slate-100 text-sm font-medium">
@@ -354,78 +360,81 @@ const fastestOnTrack = [28.900, 32.000, 29.850]; // fastest sector times on trac
                 />
               </svg>
 
-             <div className="absolute" style={{ left: "23%", top: "16%", zIndex: 10 }}>
-  <div className="group relative">
-    <div
-      className={`w-12 h-12 rounded-full ${tireClass(
-        0
-      )} flex items-center justify-center shadow-lg z-20`}
-    >
-      <span className="font-semibold">FR</span>
-    </div>
+              <div
+                className="absolute"
+                style={{ left: "23%", top: "16%", zIndex: 10 }}
+              >
+                <div className="group relative">
+                  <div
+                    className={`w-12 h-12 rounded-full ${tireClass(
+                      0
+                    )} flex items-center justify-center shadow-lg z-20`}
+                  >
+                    <span className="font-semibold">FR</span>
+                  </div>
 
-    <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 text-center text-xs font-medium select-none text-slate-300 z-30">
-      <div className="flex items-center gap-2">
-        {/* Temperature badge */}
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[#a78bfa] text-[10px] font-medium shadow-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-3 h-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M14 14.76V3a2 2 0 10-4 0v11.76a4 4 0 104 0z"
-            />
-          </svg>
-          {tires.temps[0]}°C
-        </div>
+                  <div className="absolute left-1/2 transform -translate-x-1/2 -top-8 text-center text-xs font-medium select-none text-slate-300 z-30">
+                    <div className="flex items-center gap-2">
+                      {/* Temperature badge */}
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[#a78bfa] text-[10px] font-medium shadow-sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-3 h-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M14 14.76V3a2 2 0 10-4 0v11.76a4 4 0 104 0z"
+                          />
+                        </svg>
+                        {tires.temps[0]}°C
+                      </div>
 
-        {/* Pressure badge */}
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[#a78bfa] text-[10px] font-medium shadow-sm">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-3 h-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <line
-              x1="12"
-              y1="12"
-              x2="16"
-              y2="8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {tires.pressure[0]}
-        </div>
-      </div>
-    </div>
+                      {/* Pressure badge */}
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700 text-[#a78bfa] text-[10px] font-medium shadow-sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-3 h-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <line
+                            x1="12"
+                            y1="12"
+                            x2="16"
+                            y2="8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {tires.pressure[0]}
+                      </div>
+                    </div>
+                  </div>
 
-    {/* Tooltip */}
-    <div className="absolute -left-72 -top-2 hidden group-hover:block z-40">
-      <WheelTooltip
-        temps={[82, 83, 84, 85, 86, 87, 88]}
-        pressures={[23, 23, 23, 23, 23, 23, 23]}
-        wheelName="Front Right"
-      />
-    </div>
-  </div>
-</div>
+                  {/* Tooltip */}
+                  <div className="absolute -left-72 -top-2 hidden group-hover:block z-40">
+                    <WheelTooltip
+                      temps={[82, 83, 84, 85, 86, 87, 88]}
+                      pressures={[23, 23, 23, 23, 23, 23, 23]}
+                      wheelName="Front Right"
+                    />
+                  </div>
+                </div>
+              </div>
 
               {/* Small speed badge — place this above the front wing arc so it sits left of the curve */}
               <div
@@ -848,94 +857,99 @@ const fastestOnTrack = [28.900, 32.000, 29.850]; // fastest sector times on trac
           </div>
         </div>
 
-        <section className="flex gap-4 mt-4">
-          <div className="card flex-1 bg-slate-800 border border-slate-700 rounded p-4">
-            <h3 className="text-lg font-semibold text-slate-100">Meters</h3>
-            <div className="mt-2 space-y-2 text-slate-200">
-              <div>
-                <div className="text-sm">
-                  Throttle <span className="select-none">{throttle}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={throttle}
-                  onChange={(e) => setThrottle(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <div className="text-sm">
-                  Brake <span className="select-none">{brake}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={brake}
-                  onChange={(e) => setBrake(Number(e.target.value))}
-                  className="w-full"
-                />
-              </div>
+<section className="flex gap-6 mt-4">
+  {/* Suggestion Panel */}
+  <SuggestionPanel
+    suggestions={{
+      speed: "+5 km/h",
+      tirePressure: "32 PSI → 35 PSI",
+      fuelLevel: "Low → Refill recommended",
+    }}
+  />
 
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {tires.temps.map((t, i) => (
-                  <div key={i} className={boxClass(i)}>
-                    <div className="text-xs text-slate-400">Tire {i + 1}</div>
-                    <div className="text-sm font-medium select-none">
-                      {t}°C — {tires.pressure[i]} psi
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+  {/* Pedals + AudioPlayer container */}
+  <div className="flex gap-4">
+    {/* Pedals */}
+    <div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
+      <h3 className="text-lg font-semibold text-slate-100 mb-4">Pedals</h3>
+
+      <div className="flex gap-4 justify-center">
+        {/* Throttle */}
+        <div className="flex flex-col items-center">
+          <div className="text-xs text-slate-300 mb-1">Throttle</div>
+          <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
+            <div
+              className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
+                throttle <= 50
+                  ? "bg-green-500"
+                  : throttle <= 80
+                  ? "bg-yellow-400"
+                  : "bg-red-500"
+              }`}
+              style={{ height: `${throttle}%` }}
+            ></div>
           </div>
+          <div className="text-xs text-slate-300 mt-1">{throttle}%</div>
+        </div>
 
-          <div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
-            <h3 className="text-lg font-semibold text-slate-100 mb-4">
-              Pedals
-            </h3>
-
-            <div className="flex gap-4 justify-center">
-              {/* Throttle */}
-              <div className="flex flex-col items-center">
-                <div className="text-xs text-slate-300 mb-1">Throttle</div>
-                <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
-                  <div
-                    className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
-                      throttle <= 50
-                        ? "bg-green-500"
-                        : throttle <= 80
-                        ? "bg-yellow-400"
-                        : "bg-red-500"
-                    }`}
-                    style={{ height: `${throttle}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-slate-300 mt-1">{throttle}%</div>
-              </div>
-
-              {/* Brake */}
-              <div className="flex flex-col items-center">
-                <div className="text-xs text-slate-300 mb-1">Brake</div>
-                <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
-                  <div
-                    className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
-                      brake <= 50
-                        ? "bg-green-500"
-                        : brake <= 80
-                        ? "bg-yellow-400"
-                        : "bg-red-500"
-                    }`}
-                    style={{ height: `${brake}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-slate-300 mt-1">{brake}%</div>
-              </div>
-            </div>
+        {/* Brake */}
+        <div className="flex flex-col items-center">
+          <div className="text-xs text-slate-300 mb-1">Brake</div>
+          <div className="w-6 h-32 bg-slate-700 rounded overflow-hidden relative">
+            <div
+              className={`absolute bottom-0 w-full rounded transition-all duration-200 ${
+                brake <= 50
+                  ? "bg-green-500"
+                  : brake <= 80
+                  ? "bg-yellow-400"
+                  : "bg-red-500"
+              }`}
+              style={{ height: `${brake}%` }}
+            ></div>
           </div>
-        </section>
+          <div className="text-xs text-slate-300 mt-1">{brake}%</div>
+        </div>
+      </div>
+    </div>
+
+    {/* Audio Player */}
+    {/* Audio Player */}
+<div className="card w-48 bg-slate-800 border border-slate-700 rounded p-4 flex flex-col items-center">
+  <h3 className="text-lg font-semibold text-slate-100 mb-4 flex items-center gap-2">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-5 h-5 text-green-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6v12h4l5-6-5-6H4z"
+      />
+    </svg>
+    Audio
+  </h3>
+
+  {/* Vertical Buttons */}
+  <div className="flex flex-col gap-2 w-full items-center">
+    <button className="w-24 px-3 py-1 rounded bg-green-500 text-slate-900 font-medium hover:bg-green-600 transition">
+      Play
+    </button>
+    <button className="w-24 px-3 py-1 rounded bg-yellow-400 text-slate-900 font-medium hover:bg-yellow-500 transition">
+      Mute
+    </button>
+    <button className="w-24 px-3 py-1 rounded bg-red-500 text-slate-100 font-medium hover:bg-red-600 transition">
+      Stop
+    </button>
+  </div>
+</div>
+
+  </div>
+</section>
+          
       </main>
     </div>
   );
